@@ -52,100 +52,93 @@ jobs:
         echo "---" >> $GITHUB_STEP_SUMMARY
 
   test:
-    name: ${{ matrix.suite-name }}
+    name: 🎭 Run Playwright Tests
     needs: [info]
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    # Run both suites in parallel, unless specific suite is selected via workflow_dispatch
-    if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == '' || github.event.inputs.test_suite == matrix.suite-key }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - suite-name: "🏠 HOME PAGE Tests"
-            test-path: "tests/HOME PAGE"
-            suite-icon: "🏠"
-            suite-key: "homepage"
-          - suite-name: "🔐 LOGIN Tests"
-            test-path: "tests/MY ACCOUNT - LOGIN"
-            suite-icon: "🔐"
-            suite-key: "login"
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 20
         cache: 'npm'
-    
+
     - name: Install dependencies
       run: npm ci
-    
+
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
-    
-    - name: 🎭 Run Playwright Tests
+
+    - name: Determine suite
+      id: suite
       run: |
-        echo "${{ matrix.suite-icon }} Running ${{ matrix.suite-name }}"
-        
-        # Determine which tests to run based on workflow input
-        if [ "${{ github.event.inputs.test_suite }}" = "smoke" ]; then
-          echo "💨 Running SMOKE tests only (~4 tests, 2-3 min)"
-          npx playwright test --project=smoke --reporter=list,html
-        elif [ "${{ github.event.inputs.test_suite }}" = "critical" ]; then
-          echo "⚠️ Running CRITICAL tests only (~10 tests, 5-7 min)"
-          npx playwright test --project=critical --reporter=list,html
-        elif [ "${{ github.event.inputs.test_suite }}" = "all" ]; then
-          echo "🎯 Running ALL tests (~114 tests, 35-45 min)"
-          npx playwright test --project=chromium --reporter=list,html
-        elif [ "${{ github.event.inputs.test_suite }}" = "homepage" ]; then
-          echo "🏠 Running HOMEPAGE tests (~65 tests, 20-25 min)"
-          npx playwright test --project=homepage --reporter=list,html
-        elif [ "${{ github.event.inputs.test_suite }}" = "login" ]; then
-          echo "🔐 Running LOGIN tests (~49 tests, 15-20 min)"
-          npx playwright test --project=login --reporter=list,html
-        else
-          echo "📂 Test path: ${{ matrix.test-path }}"
-          echo "================================================"
-          npx playwright test "${{ matrix.test-path }}" --reporter=list,html
-        fi
-        
-        echo "================================================"
-        echo "✅ Tests completed for ${{ matrix.suite-name }}"
-      continue-on-error: false
-    
+        SUITE="${{ github.event.inputs.test_suite }}"
+        if [ -z "$SUITE" ]; then SUITE="smoke"; fi
+        echo "suite=$SUITE" >> $GITHUB_OUTPUT
+
+    - name: Execute tests
+      run: |
+        echo "Selected suite: ${{ steps.suite.outputs.suite }}"
+        case "${{ steps.suite.outputs.suite }}" in
+          smoke)
+            echo "💨 Running SMOKE tests only (~4 tests, 2-3 min)"
+            npx playwright test --project=smoke --reporter=list,html
+            ;;
+          critical)
+            echo "⚠️ Running CRITICAL tests only (~10 tests, 5-7 min)"
+            npx playwright test --project=critical --reporter=list,html
+            ;;
+          all)
+            echo "🎯 Running ALL tests (~114 tests, 35-45 min)"
+            npx playwright test --project=chromium --reporter=list,html
+            ;;
+          homepage)
+            echo "🏠 Running HOMEPAGE tests (~65 tests, 20-25 min)"
+            npx playwright test --project=homepage --reporter=list,html
+            ;;
+          login)
+            echo "🔐 Running LOGIN tests (~49 tests, 15-20 min)"
+            npx playwright test --project=login --reporter=list,html
+            ;;
+          *)
+            echo "Unknown suite, defaulting to smoke"
+            npx playwright test --project=smoke --reporter=list,html
+            ;;
+        esac
+
     - name: Upload test results
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-${{ matrix.suite-icon }}
+        name: test-results-${{ steps.suite.outputs.suite }}
         path: test-results/
         retention-days: 7
-    
+
     - name: Upload HTML report
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v4
       with:
-        name: playwright-report-${{ matrix.suite-icon }}
+        name: playwright-report-${{ steps.suite.outputs.suite }}
         path: playwright-report/
         retention-days: 30
-    
+
     - name: Test Summary
       if: always()
       run: |
-        echo "### ${{ matrix.suite-icon }} ${{ matrix.suite-name }} - Results" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Test Path:** \`${{ matrix.test-path }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "### Results — Suite: ${{ steps.suite.outputs.suite }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         if [ -f playwright-report/index.html ]; then
           echo "✅ HTML report generated successfully" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Artifacts:**" >> $GITHUB_STEP_SUMMARY
-          echo "- 📄 HTML Report: \`playwright-report-${{ matrix.suite-icon }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- 🧪 Test Results: \`test-results-${{ matrix.suite-icon }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 📄 HTML Report: \`playwright-report-${{ steps.suite.outputs.suite }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 Test Results: \`test-results-${{ steps.suite.outputs.suite }}\`" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ No HTML report found — tests may have failed early" >> $GITHUB_STEP_SUMMARY
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "---" >> $GITHUB_STEP_SUMMARY
