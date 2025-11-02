@@ -44,6 +44,12 @@ export async function ensureNavReady(page: Page) {
   await nav.waitFor({ state: 'visible', timeout }).catch(() => {
     console.log('[UI Helper] Navigation timeout - continuing anyway');
   });
+  
+  // Дополнительно ждём, пока внутри nav появятся ссылки
+  const navLinks = page.getByRole('navigation').getByRole('link');
+  await navLinks.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+    console.log('[UI Helper] Navigation links not ready - continuing anyway');
+  });
 }
 
 export async function clickNavLink(page: Page, name: string) {
@@ -57,6 +63,10 @@ export async function clickNavLink(page: Page, name: string) {
   console.log(`[UI Helper] Clicking link: ${name} (timeout: ${timeout}ms)`);
   await expect(target, `Link '${name}' should be visible`).toBeVisible({ timeout });
   await target.click({ timeout });
+  
+  // Ждём завершения навигации после клика
+  await page.waitForLoadState('domcontentloaded').catch(() => {});
+  await ensureNavReady(page); // Убедимся, что навигация снова готова
 }
 
 export async function preparePage(page: Page) {
