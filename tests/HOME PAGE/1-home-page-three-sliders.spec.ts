@@ -4,7 +4,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Home Page with Three Sliders Only', () => {
-  test('Verify that the home page contains exactly three sliders', async ({ page }) => {
+  test('Verify that the home page contains exactly three sliders @smoke', async ({ page }) => {
     test.setTimeout(60000);
     
     // 1. Navigate to http://practice.automationtesting.in/

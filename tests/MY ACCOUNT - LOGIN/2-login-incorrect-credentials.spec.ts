@@ -9,7 +9,7 @@ const INVALID_PASSWORD = 'WrongPassword123!';
 
 test.describe('My Account - Login with Incorrect Credentials', () => {
   
-  test('Login with incorrect username and incorrect password', async ({ page }) => {
+  test('Login with incorrect username and incorrect password @critical', async ({ page }) => {
     test.setTimeout(60000);
     
     // Step 1-2: Navigate to home page

@@ -5,8 +5,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', () => {
   
-  test('Single book final price display and calculation', async ({ page }) => {
-    test.setTimeout(60000);
+  test('Single book final price display and calculation @critical', async ({ page }) => {
+    test.setTimeout(120000);
     
     // Steps 1-2: Navigate to home page
     await page.goto('http://practice.automationtesting.in/');

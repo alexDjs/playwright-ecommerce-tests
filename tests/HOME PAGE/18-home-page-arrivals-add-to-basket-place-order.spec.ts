@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Home Page Arrivals Add to Basket - Place Order', () => {
   
-  test('Complete order placement with Direct Bank Transfer', async ({ page }) => {
+  test('Complete order placement with Direct Bank Transfer @critical', async ({ page }) => {
     test.setTimeout(90000);
     
     // Steps 1-2: Navigate to home page

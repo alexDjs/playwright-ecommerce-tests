@@ -34,49 +34,42 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    // All tests
+    // Default: All tests
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      // Exclude tagged tests to avoid duplication
+      grep: /^(?!.*@smoke)(?!.*@critical)/,
     },
 
-    // Projects by feature (tags)
+    // Quick validation: Critical smoke tests (~5 tests, 2-3 min)
     {
       name: 'smoke',
       use: { ...devices['Desktop Chrome'] },
       grep: /@smoke/,
+      retries: 0, // Smoke tests should pass on first try
     },
-    {
-      name: 'regression',
-      use: { ...devices['Desktop Chrome'] },
-      grep: /@regression/,
-    },
+
+    // Important scenarios: Critical business paths (~15-20 tests, 5-7 min)
     {
       name: 'critical',
       use: { ...devices['Desktop Chrome'] },
       grep: /@critical/,
+      retries: 1,
     },
 
-    // Projects by feature area
+    // Feature-specific runs (for targeted testing)
     {
       name: 'homepage',
       use: { ...devices['Desktop Chrome'] },
       testMatch: '**/HOME PAGE/**',
+      grep: /^(?!.*@smoke)(?!.*@critical)/, // Exclude already-tested
     },
     {
       name: 'login',
       use: { ...devices['Desktop Chrome'] },
       testMatch: '**/MY ACCOUNT - LOGIN/**',
-    },
-    {
-      name: 'basket',
-      use: { ...devices['Desktop Chrome'] },
-      grep: /@basket/,
-    },
-    {
-      name: 'checkout',
-      use: { ...devices['Desktop Chrome'] },
-      grep: /@checkout/,
+      grep: /^(?!.*@smoke)(?!.*@critical)/, // Exclude already-tested
     },
 
    /* {

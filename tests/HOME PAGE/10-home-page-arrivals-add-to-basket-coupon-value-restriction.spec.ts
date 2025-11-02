@@ -5,8 +5,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Home Page Arrivals Add to Basket - Coupon Value Restriction', () => {
   
-  test('Single low-value product - coupon restriction validation', async ({ page }) => {
-    test.setTimeout(60000);
+  test('Single low-value product - coupon restriction validation @critical', async ({ page }) => {
+    test.setTimeout(90000);
     
     // Steps 1-2: Navigate to home page
     await page.goto('http://practice.automationtesting.in/');

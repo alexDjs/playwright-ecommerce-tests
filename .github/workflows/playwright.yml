@@ -10,15 +10,14 @@ on:
       test_suite:
         description: 'Test suite to run'
         required: false
-        default: 'all'
+        default: 'smoke'
         type: choice
         options:
+          - smoke
+          - critical
           - all
           - homepage
           - login
-          - smoke
-          - critical
-          - regression
   schedule:
     # Run tests daily at 2 AM UTC
     - cron: '0 2 * * *'
@@ -34,11 +33,13 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 📊 Test Suite Overview" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Suite | Tests | Files | Description |" >> $GITHUB_STEP_SUMMARY
-        echo "|-------|-------|-------|-------------|" >> $GITHUB_STEP_SUMMARY
-        echo "| 🏠 HOME PAGE | 65 | 18 files | Sliders, navigation, basket, checkout, orders |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🔐 LOGIN | 49 | 8 files | Authentication, validation, session management |" >> $GITHUB_STEP_SUMMARY
-        echo "| **TOTAL** | **114** | **26 files** | **Complete E2E coverage** |" >> $GITHUB_STEP_SUMMARY
+        echo "| Suite | Tests | Duration | Description |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|-------|----------|-------------|" >> $GITHUB_STEP_SUMMARY
+        echo "| 💨 SMOKE | ~4 tests | 2-3 min | Critical smoke tests for quick validation |" >> $GITHUB_STEP_SUMMARY
+        echo "| ⚠️ CRITICAL | ~10 tests | 5-7 min | Important business scenarios |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🏠 HOME PAGE | 65 tests | 20-25 min | Sliders, navigation, basket, checkout |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔐 LOGIN | 49 tests | 15-20 min | Authentication, validation, sessions |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🎯 ALL | 114 tests | 35-45 min | Complete E2E coverage |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### ⚙️ Execution Configuration" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -92,16 +93,22 @@ jobs:
         
         # Determine which tests to run based on workflow input
         if [ "${{ github.event.inputs.test_suite }}" = "smoke" ]; then
-          echo "� Running SMOKE tests only"
+          echo "💨 Running SMOKE tests only (~4 tests, 2-3 min)"
           npx playwright test --project=smoke --reporter=list,html
         elif [ "${{ github.event.inputs.test_suite }}" = "critical" ]; then
-          echo "⚠️ Running CRITICAL tests only"
+          echo "⚠️ Running CRITICAL tests only (~10 tests, 5-7 min)"
           npx playwright test --project=critical --reporter=list,html
-        elif [ "${{ github.event.inputs.test_suite }}" = "regression" ]; then
-          echo "🔍 Running REGRESSION tests"
-          npx playwright test --project=regression --reporter=list,html
+        elif [ "${{ github.event.inputs.test_suite }}" = "all" ]; then
+          echo "🎯 Running ALL tests (~114 tests, 35-45 min)"
+          npx playwright test --project=chromium --reporter=list,html
+        elif [ "${{ github.event.inputs.test_suite }}" = "homepage" ]; then
+          echo "🏠 Running HOMEPAGE tests (~65 tests, 20-25 min)"
+          npx playwright test --project=homepage --reporter=list,html
+        elif [ "${{ github.event.inputs.test_suite }}" = "login" ]; then
+          echo "🔐 Running LOGIN tests (~49 tests, 15-20 min)"
+          npx playwright test --project=login --reporter=list,html
         else
-          echo "�📂 Test path: ${{ matrix.test-path }}"
+          echo "📂 Test path: ${{ matrix.test-path }}"
           echo "================================================"
           npx playwright test "${{ matrix.test-path }}" --reporter=list,html
         fi

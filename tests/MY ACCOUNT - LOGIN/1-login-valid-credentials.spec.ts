@@ -9,7 +9,7 @@ const TEST_PASSWORD = process.env.TEST_PASSWORD || 'TestPassword123!';
 
 test.describe('My Account - Login with Valid Credentials', () => {
   
-  test('Login with valid username and password', async ({ page }) => {
+  test('Login with valid username and password @smoke @critical', async ({ page }) => {
     test.setTimeout(60000);
     
     // Step 1-2: Navigate to home page

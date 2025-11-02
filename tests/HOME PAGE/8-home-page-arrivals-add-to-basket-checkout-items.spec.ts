@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Home Page Arrivals Add to Basket - Checkout Items', () => {
   
-  test('Complete add to basket and checkout flow', async ({ page }) => {
+  test('Complete add to basket and checkout flow @smoke @critical', async ({ page }) => {
     test.setTimeout(45000); // Reduced timeout
     
     // Step 1 & 2: Navigate to home page

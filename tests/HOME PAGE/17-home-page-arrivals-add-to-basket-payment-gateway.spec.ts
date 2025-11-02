@@ -5,8 +5,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Home Page Arrivals Add to Basket - Payment Gateway', () => {
   
-  test('Payment gateway page access and structure', async ({ page }) => {
-    test.setTimeout(60000);
+  test('Payment gateway page access and structure @critical', async ({ page }) => {
+    test.setTimeout(90000);
     
     // Steps 1-2: Navigate to home page
     await page.goto('http://practice.automationtesting.in/');

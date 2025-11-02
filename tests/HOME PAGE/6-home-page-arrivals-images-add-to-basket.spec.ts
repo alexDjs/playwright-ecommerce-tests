@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Home Page Arrivals Image Add to Basket', () => {
   
-  test('Arrivals images should navigate to product pages and add to basket', async ({ page }) => {
+  test('Arrivals images should navigate to product pages and add to basket @smoke @critical', async ({ page }) => {
     // Step 1: Browser opens automatically
     
     // Step 2: Enter the URL
