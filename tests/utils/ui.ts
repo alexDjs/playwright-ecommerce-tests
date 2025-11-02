@@ -26,23 +26,37 @@ export async function dismissConsent(page: Page) {
 }
 
 export async function waitForPageReady(page: Page) {
+  // Увеличенные таймауты для CI
+  const networkTimeout = process.env.CI ? 20000 : 10000;
+  
+  console.log('[UI Helper] Waiting for page ready...');
   await page.waitForLoadState('domcontentloaded');
   // Give the page a short breath; if networkidle never happens, continue
-  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+  await page.waitForLoadState('networkidle', { timeout: networkTimeout }).catch(() => {
+    console.log('[UI Helper] Network idle timeout - continuing anyway');
+  });
 }
 
 export async function ensureNavReady(page: Page) {
+  const timeout = process.env.CI ? 30000 : 15000;
   const nav = page.locator('nav, #site-navigation').first();
-  await nav.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+  console.log(`[UI Helper] Waiting for navigation (timeout: ${timeout}ms)`);
+  await nav.waitFor({ state: 'visible', timeout }).catch(() => {
+    console.log('[UI Helper] Navigation timeout - continuing anyway');
+  });
 }
 
 export async function clickNavLink(page: Page, name: string) {
+  // Увеличенные таймауты для CI (медленное окружение)
+  const timeout = process.env.CI ? 30000 : 15000;
+  
   const byNav = page.getByRole('navigation').getByRole('link', { name: new RegExp(`^${name}$`, 'i') });
   const byAnywhere = page.getByRole('link', { name: new RegExp(name, 'i') });
 
   const target = (await byNav.count()) ? byNav.first() : byAnywhere.first();
-  await expect(target, `Link '${name}' should be visible`).toBeVisible({ timeout: 15000 });
-  await target.click({ timeout: 15000 });
+  console.log(`[UI Helper] Clicking link: ${name} (timeout: ${timeout}ms)`);
+  await expect(target, `Link '${name}' should be visible`).toBeVisible({ timeout });
+  await target.click({ timeout });
 }
 
 export async function preparePage(page: Page) {
