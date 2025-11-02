@@ -1,0 +1,81 @@
+name: 💨 Smoke Tests
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: 💨 Quick Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+    
+    - name: 💨 Run Smoke Tests
+      run: |
+        echo "## 💨 Smoke Tests Execution" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Running critical smoke tests for quick validation..." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "⏱️ **Expected Duration:** ~5 minutes" >> $GITHUB_STEP_SUMMARY
+        echo "🎯 **Purpose:** Quick sanity check of critical paths" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        
+        npx playwright test --project=smoke --reporter=list,html
+    
+    - name: Upload test results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: smoke-test-results
+        path: test-results/
+        retention-days: 7
+    
+    - name: Upload HTML report
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: smoke-test-report
+        path: playwright-report/
+        retention-days: 7
+    
+    - name: Test Summary
+      if: always()
+      run: |
+        echo "### 💨 Smoke Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -f playwright-report/index.html ]; then
+          echo "✅ **Status:** Tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📦 **Artifacts Available:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 📄 HTML Report: \`smoke-test-report\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 Test Results: \`smoke-test-results\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 **Tip:** Download artifacts from the bottom of this page" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Status:** Tests failed or did not complete" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Note:** Smoke tests include only critical paths tagged with @smoke" >> $GITHUB_STEP_SUMMARY
+        echo "**For full test coverage, see the main Playwright Tests workflow**" >> $GITHUB_STEP_SUMMARY

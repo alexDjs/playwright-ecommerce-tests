@@ -8,10 +8,18 @@
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
-    "test:home": "playwright test 'HOME PAGE'",
-    "test:login": "playwright test 'MY ACCOUNT - LOGIN'",
+    "test:home": "playwright test \"tests/HOME PAGE\"",
+    "test:login": "playwright test \"tests/MY ACCOUNT - LOGIN\"",
+    "test:smoke": "playwright test --project=smoke",
+    "test:regression": "playwright test --project=regression",
+    "test:critical": "playwright test --project=critical",
+    "test:basket": "playwright test --project=basket",
+    "test:checkout": "playwright test --project=checkout",
+    "test:homepage": "playwright test --project=homepage",
+    "test:login-project": "playwright test --project=login",
+    "test:file": "playwright test",
     "report": "playwright show-report",
-    "codegen": "playwright codegen http://practice.automationtesting.in/"
+    "codegen": "playwright codegen"
   },
   "keywords": [
     "playwright",

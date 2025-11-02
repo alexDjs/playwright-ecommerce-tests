@@ -1,0 +1,52 @@
+name: 📋 List Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  list-tests:
+    name: 📝 Show All Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: List all tests
+      run: |
+        echo "## 📋 Complete Test List" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        npx playwright test --list > test-list.txt
+        
+        echo "### 🏠 HOME PAGE Tests (65 tests)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        grep "HOME PAGE" test-list.txt >> $GITHUB_STEP_SUMMARY || echo "No HOME PAGE tests found"
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### 🔐 LOGIN Tests (49 tests)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        grep "LOGIN" test-list.txt >> $GITHUB_STEP_SUMMARY || echo "No LOGIN tests found"
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        TOTAL_TESTS=$(wc -l < test-list.txt)
+        echo "**Total:** $TOTAL_TESTS tests" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Upload test list
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-list
+        path: test-list.txt
+        retention-days: 7

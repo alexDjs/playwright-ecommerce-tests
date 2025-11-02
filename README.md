@@ -89,6 +89,45 @@ npx playwright install chromium
 
 ---
 
+## 📚 Documentation
+
+<table>
+<tr>
+<td width="50%">
+
+### 📖 Guides
+
+- 📘 **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Complete testing guide
+  - Test organization strategies
+  - Running tests by tags, folders, projects
+  - CI/CD configuration options
+  - Performance metrics and recommendations
+
+</td>
+<td width="50%">
+
+### 💡 Examples
+
+### 💡 Quick Start
+
+- 🚀 **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick command reference
+   - Most common commands
+   - Tag usage
+   - GitHub Actions manual runs
+   - Tips and tricks
+
+- 📗 **[EXAMPLES.md](EXAMPLES.md)** - Real-world examples
+  - How to tag tests
+  - Running single tests
+  - Complex filtering
+  - CI/CD workflow examples
+
+</td>
+</tr>
+</table>
+
+---
+
 ## 🧪 Running Tests
 
 <table>
@@ -109,27 +148,67 @@ npm run test:headed
 
 # Debug mode
 npm run test:debug
-```
-
-</td>
-<td width="50%">
-
-### 🎪 Specific Test Suites
-
-```bash
-# HOME PAGE tests only
-npm run test:home
-
-# LOGIN tests only
-npm run test:login
 
 # Show HTML report
 npm run report
 ```
 
 </td>
+<td width="50%">
+
+### 🎪 By Test Suite
+
+```bash
+# HOME PAGE tests (65 tests)
+npm run test:home
+
+# LOGIN tests (49 tests)
+npm run test:login
+
+# By project
+npm run test:homepage
+npm run test:login-project
+```
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🏷️ By Tags (Optional)
+
+```bash
+# Smoke tests (fast critical paths)
+npm run test:smoke
+
+# Regression tests (full coverage)
+npm run test:regression
+
+# Critical tests (must-pass)
+npm run test:critical
+```
+
+</td>
+<td width="50%">
+
+### 📁 Single File or Test
+
+```bash
+# Run single file
+npx playwright test path/to/file.spec.ts
+
+# Run single test (by line number)
+npx playwright test file.spec.ts:10
+
+# Run by test name
+npx playwright test --grep "test name"
+```
+
+</td>
 </tr>
 </table>
+
+> 💡 **See [TESTING_GUIDE.md](TESTING_GUIDE.md) for detailed instructions and [EXAMPLES.md](EXAMPLES.md) for real-world examples**
 
 ---
 
@@ -188,19 +267,64 @@ npm run report
 ### 🔄 CI/CD Pipeline
 
 <details>
-<summary><strong>GitHub Actions Workflow</strong></summary>
+<summary><strong>GitHub Actions Workflows</strong></summary>
+
+#### 🎭 Main Test Workflow
 
 Automated test execution on:
 
 - ✅ **Push to `main`/`master`** - Immediate feedback
-- ✅ **Pull Requests** - Pre-merge validation
+- ✅ **Pull Requests** - Pre-merge validation (runs smoke tests)
 - ✅ **Daily Schedule** - 2:00 AM UTC health check
-- ✅ **Manual Trigger** - On-demand execution
+- ✅ **Manual Trigger** - On-demand execution with suite selection
 
 **Performance:**
-- Parallel execution across **4 shards**
-- Average runtime: **~20 minutes**
+- Parallel execution by **test suite** (HOME PAGE + LOGIN run simultaneously)
+- Average runtime per suite: **~15 minutes**
+- Total runtime: **~15-20 minutes** (parallel execution)
 - Artifact retention: **30 days**
+
+**Manual Run Options:**
+- Run all tests (default)
+- Run specific suite: homepage, login
+- Run by category: smoke, critical, regression
+
+#### 💨 Smoke Test Workflow
+
+Quick validation on Pull Requests:
+
+- ✅ **Pull Requests** - Automatic smoke test execution
+- ✅ **Manual Trigger** - On-demand quick validation
+- ⏱️ **Runtime:** ~5 minutes
+- 🎯 **Purpose:** Critical path validation before merge
+
+#### 📋 Test List Workflow
+
+Manual workflow to view all available tests:
+- Go to [Actions](https://github.com/alexDjs/playwright-ecommerce-tests/actions)
+- Select "📋 List Tests"
+- Click "Run workflow"
+- View complete test list in the summary
+
+</details>
+
+<details>
+<summary><strong>📊 Understanding Test Results</strong></summary>
+
+After workflow completion, check the **Summary** tab to see:
+
+1. **📋 Test Execution Info** - Overview of all test suites (114 tests, 26 files)
+2. **🏠 HOME PAGE Tests** - Results from HOME PAGE suite (65 tests, 18 files)
+3. **🔐 LOGIN Tests** - Results from LOGIN suite (49 tests, 8 files)
+4. **📊 Test Suites Executed** - Complete breakdown by suite
+5. **📦 Available Artifacts** - Download HTML reports
+6. **🌐 Published Report** - Link to GitHub Pages (main branch only)
+
+**Download Reports:**
+- Scroll to bottom of workflow run
+- Look for "Artifacts" section
+- Download `playwright-report-merged` for complete results from all suites
+- Or download individual suite reports: `playwright-report-🏠` or `playwright-report-🔐`
 
 </details>
 
@@ -322,3 +446,11 @@ This project is licensed under the **ISC License**.
 </div>
  
  
+
+### 🎯 Getting Started
+
+- 🗺️ **[STRATEGY.md](STRATEGY.md)** - Testing strategy overview
+   - Visual decision trees
+   - When to use what approach
+   - Performance comparisons
+   - Recommendations for your project

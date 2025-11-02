@@ -34,9 +34,49 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // All tests
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+
+    // Projects by feature (tags)
+    {
+      name: 'smoke',
+      use: { ...devices['Desktop Chrome'] },
+      grep: /@smoke/,
+    },
+    {
+      name: 'regression',
+      use: { ...devices['Desktop Chrome'] },
+      grep: /@regression/,
+    },
+    {
+      name: 'critical',
+      use: { ...devices['Desktop Chrome'] },
+      grep: /@critical/,
+    },
+
+    // Projects by feature area
+    {
+      name: 'homepage',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: '**/HOME PAGE/**',
+    },
+    {
+      name: 'login',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: '**/MY ACCOUNT - LOGIN/**',
+    },
+    {
+      name: 'basket',
+      use: { ...devices['Desktop Chrome'] },
+      grep: /@basket/,
+    },
+    {
+      name: 'checkout',
+      use: { ...devices['Desktop Chrome'] },
+      grep: /@checkout/,
     },
 
    /* {

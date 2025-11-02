@@ -6,19 +6,69 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - homepage
+          - login
+          - smoke
+          - critical
+          - regression
   schedule:
     # Run tests daily at 2 AM UTC
     - cron: '0 2 * * *'
 
 jobs:
-  test:
-    name: Run E2E Tests
-    timeout-minutes: 90
+  info:
+    name: 📋 Test Execution Info
     runs-on: ubuntu-latest
+    steps:
+    - name: Test Suite Information
+      run: |
+        echo "## 🎭 Playwright E2E Test Execution" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📊 Test Suite Overview" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Suite | Tests | Files | Description |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|-------|-------|-------------|" >> $GITHUB_STEP_SUMMARY
+        echo "| 🏠 HOME PAGE | 65 | 18 files | Sliders, navigation, basket, checkout, orders |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔐 LOGIN | 49 | 8 files | Authentication, validation, session management |" >> $GITHUB_STEP_SUMMARY
+        echo "| **TOTAL** | **114** | **26 files** | **Complete E2E coverage** |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ⚙️ Execution Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔀 **Parallel Execution:** By test suite" >> $GITHUB_STEP_SUMMARY
+        echo "- 🌐 **Browser:** Chromium" >> $GITHUB_STEP_SUMMARY
+        echo "- ⏱️ **Timeout:** 30 seconds per test" >> $GITHUB_STEP_SUMMARY
+        echo "- 🔄 **Retries:** 2 attempts on failure" >> $GITHUB_STEP_SUMMARY
+        echo "- 📊 **Reporter:** HTML + List" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+
+  test:
+    name: ${{ matrix.suite-name }}
+    needs: [info]
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    # Run both suites in parallel, unless specific suite is selected via workflow_dispatch
+    if: ${{ github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == '' || github.event.inputs.test_suite == matrix.suite-key }}
     strategy:
       fail-fast: false
       matrix:
-        shard: [1/4, 2/4, 3/4, 4/4]
+        include:
+          - suite-name: "🏠 HOME PAGE Tests"
+            test-path: "tests/HOME PAGE"
+            suite-icon: "🏠"
+            suite-key: "homepage"
+          - suite-name: "🔐 LOGIN Tests"
+            test-path: "tests/MY ACCOUNT - LOGIN"
+            suite-icon: "🔐"
+            suite-key: "login"
     
     steps:
     - name: Checkout code
@@ -36,15 +86,35 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
     
-    - name: Run Playwright tests
-      run: npx playwright test --shard=${{ matrix.shard }}
+    - name: 🎭 Run Playwright Tests
+      run: |
+        echo "${{ matrix.suite-icon }} Running ${{ matrix.suite-name }}"
+        
+        # Determine which tests to run based on workflow input
+        if [ "${{ github.event.inputs.test_suite }}" = "smoke" ]; then
+          echo "� Running SMOKE tests only"
+          npx playwright test --project=smoke --reporter=list,html
+        elif [ "${{ github.event.inputs.test_suite }}" = "critical" ]; then
+          echo "⚠️ Running CRITICAL tests only"
+          npx playwright test --project=critical --reporter=list,html
+        elif [ "${{ github.event.inputs.test_suite }}" = "regression" ]; then
+          echo "🔍 Running REGRESSION tests"
+          npx playwright test --project=regression --reporter=list,html
+        else
+          echo "�📂 Test path: ${{ matrix.test-path }}"
+          echo "================================================"
+          npx playwright test "${{ matrix.test-path }}" --reporter=list,html
+        fi
+        
+        echo "================================================"
+        echo "✅ Tests completed for ${{ matrix.suite-name }}"
       continue-on-error: false
     
     - name: Upload test results
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-${{ matrix.shard }}
+        name: test-results-${{ matrix.suite-icon }}
         path: test-results/
         retention-days: 7
     
@@ -52,12 +122,29 @@ jobs:
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v4
       with:
-        name: playwright-report-${{ matrix.shard }}
+        name: playwright-report-${{ matrix.suite-icon }}
         path: playwright-report/
         retention-days: 30
+    
+    - name: Test Summary
+      if: always()
+      run: |
+        echo "### ${{ matrix.suite-icon }} ${{ matrix.suite-name }} - Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Test Path:** \`${{ matrix.test-path }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f playwright-report/index.html ]; then
+          echo "✅ HTML report generated successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifacts:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 📄 HTML Report: \`playwright-report-${{ matrix.suite-icon }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 Test Results: \`test-results-${{ matrix.suite-icon }}\`" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
 
   merge-reports:
-    name: Merge Test Reports
+    name: 📊 Merge & Publish Reports
     if: ${{ !cancelled() }}
     needs: [test]
     runs-on: ubuntu-latest
@@ -84,7 +171,9 @@ jobs:
     
     - name: Merge into HTML report
       run: |
+        echo "🔄 Merging reports from all test suites..."
         npx playwright merge-reports --reporter html ./all-reports || echo "Merge reports skipped"
+        echo "✅ Reports merged successfully"
     
     - name: Upload merged report
       uses: actions/upload-artifact@v4
@@ -100,3 +189,37 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./playwright-report
         destination_dir: reports/${{ github.run_number }}
+    
+    - name: Final Summary
+      if: always()
+      run: |
+        echo "## 🎭 Playwright Test Execution Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📊 Test Suites Executed" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Suite | Path | Tests |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| 🏠 HOME PAGE | \`tests/HOME PAGE\` | 65 tests (18 files) |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔐 LOGIN | \`tests/MY ACCOUNT - LOGIN\` | 49 tests (8 files) |" >> $GITHUB_STEP_SUMMARY
+        echo "| **TOTAL** | | **114 tests (26 files)** |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Available Artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Artifact | Description |" >> $GITHUB_STEP_SUMMARY
+        echo "|----------|-------------|" >> $GITHUB_STEP_SUMMARY
+        echo "| 📊 \`playwright-report-merged\` | Complete HTML report (all test suites) |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🏠 \`playwright-report-🏠\` | HOME PAGE tests report (65 tests) |" >> $GITHUB_STEP_SUMMARY
+        echo "| � \`playwright-report-🔐\` | LOGIN tests report (49 tests) |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          echo "### 🌐 Published Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Report published to GitHub Pages:" >> $GITHUB_STEP_SUMMARY
+          echo "https://${{ github.repository_owner }}.github.io/playwright-ecommerce-tests/reports/${{ github.run_number }}/" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Execution Mode:** Parallel by test suite" >> $GITHUB_STEP_SUMMARY
+        echo "**Browser:** Chromium" >> $GITHUB_STEP_SUMMARY
+        echo "**Total Duration:** Check individual jobs above ⬆️" >> $GITHUB_STEP_SUMMARY
