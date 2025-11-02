@@ -2,6 +2,7 @@
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '@playwright/test';
+import { preparePage, clickNavLink } from '../utils/ui';
 
 test.describe('Home Page Arrivals Image Add to Basket', () => {
   
@@ -11,20 +12,14 @@ test.describe('Home Page Arrivals Image Add to Basket', () => {
     // Step 2: Enter the URL
     await page.goto('http://practice.automationtesting.in/');
     
-    // Handle consent dialog if present
-    try {
-      await page.getByRole('button', { name: 'Do not consent' })
-        .click({ timeout: 5000 });
-    } catch (error) {
-      console.log('Consent dialog not found or already dismissed');
-    }
+    await preparePage(page);
     
     // Step 3: Click on Shop Menu
-    await page.getByRole('link', { name: 'Shop' }).click();
+    await clickNavLink(page, 'Shop');
     await expect(page).toHaveURL(/.*\/shop\//);
     
     // Step 4: Now click on Home menu button
-    await page.getByRole('link', { name: 'Home' }).click();
+    await clickNavLink(page, 'Home');
     await expect(page).toHaveURL(/practice\.automationtesting\.in\/$/);
     
     // Step 5: Test whether the Home page has Three Arrivals only

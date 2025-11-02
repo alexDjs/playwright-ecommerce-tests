@@ -2,6 +2,7 @@
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '@playwright/test';
+import { preparePage, clickNavLink } from '../utils/ui';
 
 test.describe('Home Page Arrivals Add to Basket - Checkout Items', () => {
   
@@ -11,16 +12,11 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Items', () => {
     // Step 1 & 2: Navigate to home page
     await page.goto('http://practice.automationtesting.in/');
     
-    // Handle consent dialog if present
-    try {
-      await page.getByRole('button', { name: 'Do not consent' }).click({ timeout: 3000 });
-    } catch (error) {
-      console.log('Consent dialog not found or already dismissed');
-    }
+    await preparePage(page);
     
     // Step 3 & 4: Navigate via Shop -> Home (simplified)
-    await page.getByRole('link', { name: 'Shop' }).click();
-    await page.getByRole('link', { name: 'Home' }).click();
+    await clickNavLink(page, 'Shop');
+    await clickNavLink(page, 'Home');
     
     // Step 5 & 6: Verify arrivals section
     await expect(page.getByText('new arrivals')).toBeVisible();

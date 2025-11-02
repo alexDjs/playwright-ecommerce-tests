@@ -2,6 +2,7 @@
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '@playwright/test';
+import { preparePage, clickNavLink } from '../utils/ui';
 
 test.describe('Home Page with Three Sliders Only', () => {
   test('Verify that the home page contains exactly three sliders @smoke', async ({ page }) => {
@@ -11,20 +12,15 @@ test.describe('Home Page with Three Sliders Only', () => {
     await page.goto('http://practice.automationtesting.in/');
     console.log('✅ Navigated to practice.automationtesting.in');
 
-    // 2. Handle consent dialog if present
-    try {
-      await page.getByRole('button', { name: 'Do not consent' }).click({ timeout: 3000 });
-      console.log('✅ Handled consent dialog');
-    } catch (error) {
-      console.log('ℹ️ Consent dialog not found');
-    }
+    // Prepare page (load state, consent, nav ready)
+    await preparePage(page);
 
     // 3. Click on Shop Menu
-    await page.getByRole('link', { name: 'Shop' }).click();
+    await clickNavLink(page, 'Shop');
     console.log('✅ Clicked Shop menu');
 
     // 4. Click on Home menu button
-    await page.getByRole('link', { name: 'Home' }).click();
+    await clickNavLink(page, 'Home');
     console.log('✅ Clicked Home menu');
 
     // 5. Verify exactly 3 sliders are present

@@ -27,6 +27,15 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
     
+    - name: List Smoke Tests
+      run: |
+        echo "### 🧪 Smoke tests to run" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        npx playwright test --project=smoke --list | tee smoke-tests-list.txt
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        cat smoke-tests-list.txt >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
     - name: 💨 Run Smoke Tests
       run: |
         echo "## 💨 Smoke Tests Execution" >> $GITHUB_STEP_SUMMARY
