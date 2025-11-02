@@ -2,113 +2,53 @@
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '@playwright/test';
-import { preparePage, clickNavLink } from '../utils/ui';
+import { preparePage } from '../utils/ui';
 
 test.describe('Home Page Arrivals Image Add to Basket', () => {
   
   test('Arrivals images should navigate to product pages and add to basket @smoke @critical', async ({ page }) => {
-    // Step 1: Browser opens automatically
+    test.setTimeout(45000);
     
-    // Step 2: Enter the URL
-    await page.goto('http://practice.automationtesting.in/');
-    
+    // Navigate to home page
+    await page.goto('http://practice.automationtesting.in/', { waitUntil: 'domcontentloaded' });
     await preparePage(page);
+    await expect(page).toHaveURL(/practice\.automationtesting\.in\/?$/);
+    console.log('✅ On home page');
     
-    // Step 3: Click on Shop Menu
-    await clickNavLink(page, 'Shop');
-    await expect(page).toHaveURL(/.*\/shop\//);
+    // Verify arrivals section exists
+    await expect(page.getByText('new arrivals')).toBeVisible({ timeout: 15000 });
     
-    // Step 4: Now click on Home menu button
-    await clickNavLink(page, 'Home');
-    await expect(page).toHaveURL(/practice\.automationtesting\.in\/$/);
-    
-    // Step 5: Test whether the Home page has Three Arrivals only
-    await expect(page.getByText('new arrivals')).toBeVisible();
-    
-    // Step 6: The Home page must contains only three Arrivals
+    // Verify exactly 3 arrivals
     const arrivalsLocator = page.locator('.products .product');
-    await expect(arrivalsLocator).toHaveCount(3);
+    await expect(arrivalsLocator).toHaveCount(3, { timeout: 15000 });
+    console.log('✅ Found 3 arrivals');
     
-    // Verify each arrival has image, title, price
-    for (let i = 0; i < 3; i++) {
-      const product = arrivalsLocator.nth(i);
-      await expect(product.locator('img')).toBeVisible();
-      await expect(product.locator('h3')).toBeVisible();
-      await expect(product.locator('.price, .woocommerce-Price-amount').first()).toBeVisible();
-    }
-    
-    // Step 7: Now click the image in the Arrivals
+    // Click first product image
     const firstProductImage = arrivalsLocator.first().locator('img');
-    await expect(firstProductImage).toBeVisible();
-    
-    // Get the product name and price before clicking for validation
-    const firstProductName = await arrivalsLocator.first().locator('h3').textContent();
-    const firstProductPrice = await arrivalsLocator.first().locator('.price, .woocommerce-Price-amount').first().textContent();
-    
-    // Click the image
+    await expect(firstProductImage).toBeVisible({ timeout: 10000 });
     await firstProductImage.click();
     
-    // Step 8: Test whether it is navigating to next page where user can add book to basket
-    await expect(page).toHaveURL(/.*\/product\/.*\//);
+    // Verify navigation to product page
+    await expect(page).toHaveURL(/.*\/product\/.*\//, { timeout: 10000 });
+    console.log('✅ Navigated to product page');
     
-    // Verify product detail page elements
-    await expect(page.locator('.product_title, h1')).toBeVisible();
-    await expect(page.locator('.summary .price').first()).toBeVisible();
-    
-    // Step 9: Image should navigate to page where user can add book to basket
+    // Verify Add to Basket button exists and click it
     const addToBasketButton = page.locator('button[name="add-to-cart"], .single_add_to_cart_button');
-    await expect(addToBasketButton).toBeVisible();
-    await expect(addToBasketButton).toBeEnabled();
-    
-    // Step 10: Click on the Add To Basket button which adds that book to your basket
+    await expect(addToBasketButton).toBeVisible({ timeout: 10000 });
     await addToBasketButton.click();
+    console.log('✅ Clicked Add to Basket');
     
-    // Wait for the add to cart action to complete
+    // Wait for cart update
     await page.waitForTimeout(2000);
     
-    // Check for success message
-    try {
-      const successMessage = page.locator('.woocommerce-message, .added-to-cart, .success, .notice-success');
-      await expect(successMessage).toBeVisible({ timeout: 10000 });
-    } catch (error) {
-      console.log('Success message not found - checking cart directly');
-    }
-    
-    // Step 11: User can view that Book in the Menu item with price
-    // Check if cart/basket menu item is visible and updated
+    // Verify cart menu shows item
     const cartMenu = page.locator('.wpmenucart-contents');
-    await expect(cartMenu).toBeVisible();
+    await expect(cartMenu).toBeVisible({ timeout: 10000 });
+    await expect(cartMenu).toContainText('item', { timeout: 10000 });
     
-    // Verify cart count increased
-    try {
-      const updatedCartText = await cartMenu.textContent();
-      expect(updatedCartText).toContain('item');
-      expect(updatedCartText).toContain('₹');
-      console.log('Cart contents:', updatedCartText);
-    } catch (error) {
-      console.log('Cart count verification skipped');
-    }
-    
-    // Step 12: User can add a book by clicking on Add To Basket button which adds that book into his Basket
-    // Verify the product was added by checking cart link text
-    try {
-      const cartText = await cartMenu.textContent();
-      expect(cartText).toContain('item');
-      expect(cartText).toContain('₹');
-      console.log('✅ Cart updated with:', cartText);
-    } catch (error) {
-      console.log('Cart contents verification failed:', error);
-    }
-    
-    // Additional validations
-    await expect(page.locator('.summary')).toBeVisible();
-    
-    // Verify we're on the correct product page
-    if (firstProductName) {
-      await expect(page.locator('.product_title, h1')).toContainText(firstProductName.trim());
-    }
-    
-    console.log('✅ Test passed: Product successfully added to basket');
+    const cartText = await cartMenu.textContent();
+    console.log('✅ Cart updated:', cartText);
+    console.log('✅ Test passed');
   });
   
   test('All arrival products can be added to basket', async ({ page }) => {

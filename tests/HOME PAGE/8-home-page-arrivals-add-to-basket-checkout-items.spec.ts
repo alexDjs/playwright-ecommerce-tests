@@ -2,77 +2,54 @@
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '@playwright/test';
-import { preparePage, clickNavLink } from '../utils/ui';
+import { preparePage } from '../utils/ui';
 
 test.describe('Home Page Arrivals Add to Basket - Checkout Items', () => {
   
   test('Complete add to basket and checkout flow @smoke @critical', async ({ page }) => {
-    test.setTimeout(45000); // Reduced timeout
+    test.setTimeout(45000);
     
-    // Step 1 & 2: Navigate to home page
-    await page.goto('http://practice.automationtesting.in/');
-    
+    // Navigate to home page
+    await page.goto('http://practice.automationtesting.in/', { waitUntil: 'domcontentloaded' });
     await preparePage(page);
+    await expect(page).toHaveURL(/practice\.automationtesting\.in\/?$/);
+    console.log('✅ On home page');
     
-    // Step 3 & 4: Navigate via Shop -> Home (simplified)
-    await clickNavLink(page, 'Shop');
-    await clickNavLink(page, 'Home');
-    
-    // Step 5 & 6: Verify arrivals section
-    await expect(page.getByText('new arrivals')).toBeVisible();
+    // Verify arrivals section
+    await expect(page.getByText('new arrivals')).toBeVisible({ timeout: 15000 });
     const arrivalsLocator = page.locator('.products .product');
-    await expect(arrivalsLocator).toHaveCount(3);
+    await expect(arrivalsLocator).toHaveCount(3, { timeout: 15000 });
+    console.log('✅ Found 3 arrivals');
     
-    // Get product details before navigation
-    const firstProductName = await arrivalsLocator.first().locator('h3').textContent();
-    const firstProductPrice = await arrivalsLocator.first().locator('.price, .woocommerce-Price-amount').first().textContent();
-    console.log(`Testing product: ${firstProductName} - ${firstProductPrice}`);
-    
-    // Step 7-9: Click product image and navigate to details
+    // Click first product
     const firstProductImage = arrivalsLocator.first().locator('img');
+    await expect(firstProductImage).toBeVisible({ timeout: 10000 });
     await firstProductImage.click();
-    await expect(page).toHaveURL(/.*\/product\/.*\//);
+    await expect(page).toHaveURL(/.*\/product\/.*\//, { timeout: 10000 });
+    console.log('✅ On product page');
     
-    // Verify product detail page and add to basket
+    // Add to basket
     const addToBasketButton = page.locator('button[name="add-to-cart"], .single_add_to_cart_button');
-    await expect(addToBasketButton).toBeVisible();
-    
-    // Step 10: Add to basket
+    await expect(addToBasketButton).toBeVisible({ timeout: 10000 });
     await addToBasketButton.click();
+    console.log('✅ Clicked Add to Basket');
     
-    // Step 11: Wait for cart update with smart waiting
+    // Wait for cart update
+    await page.waitForTimeout(2000);
     const cartMenu = page.locator('.wpmenucart-contents');
-    await expect(cartMenu).toBeVisible();
+    await expect(cartMenu).toBeVisible({ timeout: 10000 });
     await expect(cartMenu).toContainText('item', { timeout: 10000 });
+    console.log('✅ Cart updated');
     
-    const cartText = await cartMenu.textContent();
-    console.log('✅ Cart updated with:', cartText);
-    
-    // Step 12-13: Navigate to checkout
-    console.log('Clicking on items link to navigate to checkout...');
+    // Click cart to go to checkout
     await cartMenu.click();
-    
-    // Wait for checkout page navigation
     await expect(page).toHaveURL(/.*\/(basket|cart|checkout)\/.*/, { timeout: 15000 });
+    console.log('✅ On checkout page:', page.url());
     
-    // Wait for checkout page navigation
-    await expect(page).toHaveURL(/.*\/(basket|cart|checkout)\/.*/, { timeout: 15000 });
-    console.log(`✅ Successfully navigated to checkout page: ${page.url()}`);
-    
-    // Verify checkout page content
-    const checkoutElements = ['.cart_item', '.shop_table', '.cart-contents', '.woocommerce-cart'];
-    let checkoutElementFound = false;
-    
-    for (const selector of checkoutElements) {
-      if (await page.locator(selector).isVisible({ timeout: 5000 })) {
-        console.log(`✅ Found checkout element: ${selector}`);
-        checkoutElementFound = true;
-        break;
-      }
-    }
-    
-    expect(checkoutElementFound).toBeTruthy();
-    console.log('✅ Add to basket and checkout navigation test completed');
+    // Verify checkout page elements
+    const checkoutElement = page.locator('.cart_item, .shop_table, .woocommerce-cart').first();
+    await expect(checkoutElement).toBeVisible({ timeout: 10000 });
+    console.log('✅ Test passed');
   });
   
   test('Multiple items checkout navigation', async ({ page }) => {

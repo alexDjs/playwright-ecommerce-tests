@@ -60,6 +60,8 @@ jobs:
     needs: [info]
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    outputs:
+      suite: ${{ steps.suite.outputs.suite }}
 
     steps:
     - name: Checkout code
@@ -149,7 +151,8 @@ jobs:
 
   merge-reports:
     name: 📊 Merge & Publish Reports
-    if: ${{ !cancelled() }}
+    # Only merge/publish for main branch and full 'all' suite to avoid failing smoke runs
+    if: ${{ !cancelled() && needs.test.result == 'success' && github.ref == 'refs/heads/main' && needs.test.outputs.suite == 'all' }}
     needs: [test]
     runs-on: ubuntu-latest
     # Extra safety: ensure this job has permission to push to gh-pages
@@ -193,7 +196,7 @@ jobs:
         retention-days: 30
     
     - name: Deploy report to GitHub Pages
-      if: github.ref == 'refs/heads/main'
+      if: success()
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
