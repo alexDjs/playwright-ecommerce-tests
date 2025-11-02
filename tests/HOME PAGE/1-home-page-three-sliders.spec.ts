@@ -8,8 +8,26 @@ test.describe('Home Page with Three Sliders Only', () => {
   test('Verify that the home page contains exactly three sliders @smoke', async ({ page }) => {
     test.setTimeout(60000);
     
-    // Navigate directly to home page
-    await page.goto('http://practice.automationtesting.in/', { waitUntil: 'domcontentloaded' });
+    // Navigate with aggressive retry and different wait strategies
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        console.log(`Navigation attempt ${attempt}/3...`);
+        const waitStrategy = attempt === 1 ? 'domcontentloaded' : (attempt === 2 ? 'load' : 'commit');
+        await page.goto('http://practice.automationtesting.in/', { 
+          waitUntil: waitStrategy as any,
+          timeout: 60000
+        });
+        console.log(`✅ Navigation succeeded with strategy: ${waitStrategy}`);
+        break;
+      } catch (error: any) {
+        console.log(`Attempt ${attempt} failed:`, error?.message || error);
+        if (attempt === 3) {
+          throw new Error('Site is unreachable after 3 attempts. The test site may be down or blocking GitHub Actions IPs.');
+        }
+        await page.waitForTimeout(3000);
+      }
+    }
+    
     await preparePage(page);
     
     // Verify we're on home page

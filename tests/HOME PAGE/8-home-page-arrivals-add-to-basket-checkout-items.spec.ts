@@ -9,8 +9,26 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Items', () => {
   test('Complete add to basket and checkout flow @smoke @critical', async ({ page }) => {
     test.setTimeout(45000);
     
-    // Navigate to home page
-    await page.goto('http://practice.automationtesting.in/', { waitUntil: 'domcontentloaded' });
+    // Navigate with aggressive retry
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        console.log(`Navigation attempt ${attempt}/3...`);
+        const waitStrategy = attempt === 1 ? 'domcontentloaded' : (attempt === 2 ? 'load' : 'commit');
+        await page.goto('http://practice.automationtesting.in/', { 
+          waitUntil: waitStrategy as any,
+          timeout: 60000
+        });
+        console.log(`✅ Navigation succeeded with strategy: ${waitStrategy}`);
+        break;
+      } catch (error: any) {
+        console.log(`Attempt ${attempt} failed:`, error?.message || error);
+        if (attempt === 3) {
+          throw new Error('Site is unreachable after 3 attempts. The test site may be down or blocking GitHub Actions IPs.');
+        }
+        await page.waitForTimeout(3000);
+      }
+    }
+    
     await preparePage(page);
     await expect(page).toHaveURL(/practice\.automationtesting\.in\/?$/);
     console.log('✅ On home page');

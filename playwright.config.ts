@@ -30,6 +30,23 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    
+    /* Navigation timeout - increased for slow/blocked sites on CI */
+    navigationTimeout: process.env.CI ? 60000 : 30000,
+    
+    /* Action timeout */
+    actionTimeout: process.env.CI ? 15000 : 10000,
+    
+    /* User agent to bypass bot detection */
+    userAgent: process.env.CI 
+      ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      : undefined,
+    
+    /* Extra HTTP headers */
+    extraHTTPHeaders: process.env.CI ? {
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
+    } : undefined,
   },
 
   /* Configure projects for major browsers */
