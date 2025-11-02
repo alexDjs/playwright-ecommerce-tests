@@ -16,12 +16,14 @@
 
 ## ✨ Features
 
-- 🎯 **114 comprehensive E2E tests** covering critical user flows
-- 🚀 **Parallel execution** in 4 shards for faster CI/CD
-- 📊 **Automated HTML reports** with 30 days retention
+- 🎯 **114 unique E2E tests** covering critical user flows
+- � **Smoke tests** (4 tests, ~2-3 min) — Quick validation before merge
+- ⚠️ **Critical tests** (10 tests, ~5-7 min) — Key business scenarios
+- 🚀 **Optimized execution** — No test duplication, single browser run
+- 📊 **Automated HTML reports** with 30 days retention on GitHub Pages
 - 🔄 **Daily scheduled runs** at 2:00 AM UTC
 - 🛡️ **Retry mechanisms** for flaky test resilience
-- 📱 **GitHub Actions integration** with automatic reporting
+- 📱 **Flexible GitHub Actions** with manual test suite selection
 
 ---
 
@@ -134,17 +136,23 @@ npx playwright install chromium
 <tr>
 <td width="50%">
 
-### 🎯 Basic Commands
+### 🎯 Quick Test Suites
 
 ```bash
-# Run all tests
+# 💨 Smoke tests (2-3 min)
+npm run test:smoke
+
+# ⚠️ Critical tests (5-7 min)
+npx playwright test --project=critical
+
+# 🎯 All tests (35-45 min)
 npm test
 
-# Run with UI mode
-npm run test:ui
+# 🏠 Homepage only (20-25 min)
+npm run test:home
 
-# Run in headed mode
-npm run test:headed
+# 🔐 Login only (15-20 min)
+npm run test:login
 
 # Debug mode
 npm run test:debug
@@ -156,39 +164,42 @@ npm run report
 </td>
 <td width="50%">
 
-### 🎪 By Test Suite
+### 🎪 Advanced Options
 
 ```bash
-# HOME PAGE tests (65 tests)
-npm run test:home
+# With UI mode
+npm run test:ui
 
-# LOGIN tests (49 tests)
-npm run test:login
+# Headed mode (see browser)
+npm run test:headed
 
-# By project
-npm run test:homepage
-npm run test:login-project
+# Debug specific test
+npm run test:debug
+
+# Generate code
+npm run codegen
 ```
 
 </td>
 </tr>
 <tr>
-<td width="50%">
+<td colspan="2">
 
-### 🏷️ By Tags (Optional)
+### 📊 Test Suite Overview
 
-```bash
-# Smoke tests (fast critical paths)
-npm run test:smoke
+| Suite | Tests | Duration | Use Case |
+|-------|-------|----------|----------|
+| 💨 **Smoke** | 4 tests | 2-3 min | Quick validation before PR merge |
+| ⚠️ **Critical** | 10 tests | 5-7 min | Key business scenarios |
+| 🏠 **Homepage** | 65 tests | 20-25 min | Full homepage feature testing |
+| 🔐 **Login** | 49 tests | 15-20 min | Complete authentication flows |
+| 🎯 **All** | 114 tests | 35-45 min | Full regression testing |
 
-# Regression tests (full coverage)
-npm run test:regression
-
-# Critical tests (must-pass)
-npm run test:critical
-```
+**📖 For detailed GitHub Actions guide:** See [GITHUB_ACTIONS_GUIDE.md](GITHUB_ACTIONS_GUIDE.md)
 
 </td>
+</tr>
+<tr>
 <td width="50%">
 
 ### 📁 Single File or Test
