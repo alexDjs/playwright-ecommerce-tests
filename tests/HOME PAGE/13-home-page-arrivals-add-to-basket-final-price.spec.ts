@@ -3,6 +3,19 @@
 
 import { test, expect } from '@playwright/test';
 
+// Helper to extract the first currency value (₹) with up to 2 decimals from any text
+function extractINR(text?: string | null): number {
+  if (!text) return 0;
+  const match = text.match(/₹\s*([\d,]+(?:\.\d{1,2})?)/);
+  if (match) {
+    return parseFloat(match[1].replace(/,/g, ''));
+  }
+  // Fallback: strip everything except digits and dot, then round to 2 decimals to avoid stray digits
+  const cleaned = (text.match(/[\d.,]+/g) || []).join('').replace(/,/g, '');
+  const val = parseFloat(cleaned || '0');
+  return isNaN(val) ? 0 : Math.round(val * 100) / 100;
+}
+
 test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', () => {
   
   test('Single book final price display and calculation @critical', async ({ page }) => {
@@ -35,8 +48,8 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', ()
     // Steps 7: Get product details and note price from home page
     const firstProduct = arrivalsLocator.first();
     const productName = await firstProduct.locator('h3').textContent();
-    const homePagePriceText = await firstProduct.locator('.price, .woocommerce-Price-amount').first().textContent();
-    const homePagePrice = parseFloat(homePagePriceText?.replace(/[^\d.]/g, '') || '0');
+  const homePagePriceText = await firstProduct.locator('.price .woocommerce-Price-amount, .price .amount, .woocommerce-Price-amount').first().textContent();
+  const homePagePrice = extractINR(homePagePriceText);
     
     console.log(`Testing with product: ${productName}`);
     console.log(`Home page price: ${homePagePriceText} (₹${homePagePrice})`);
@@ -51,8 +64,8 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', ()
     // Verify price on product detail page
     const detailPagePriceElement = page.locator('.price, .woocommerce-Price-amount').first();
     if (await detailPagePriceElement.isVisible({ timeout: 3000 })) {
-      const detailPagePriceText = await detailPagePriceElement.textContent();
-      const detailPagePrice = parseFloat(detailPagePriceText?.replace(/[^\d.]/g, '') || '0');
+  const detailPagePriceText = await detailPagePriceElement.textContent();
+  const detailPagePrice = extractINR(detailPagePriceText);
       console.log(`Product detail page price: ${detailPagePriceText} (₹${detailPagePrice})`);
       
       if (Math.abs(homePagePrice - detailPagePrice) <= 0.01) {
@@ -127,7 +140,7 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', ()
         if (await priceElement.isVisible({ timeout: 3000 })) {
           const priceText = await priceElement.textContent();
           if (priceText && priceText.includes('₹')) {
-            checkoutUnitPrice = parseFloat(priceText.replace(/[^\d.]/g, ''));
+            checkoutUnitPrice = extractINR(priceText);
             console.log(`✅ Unit price in checkout: ₹${checkoutUnitPrice}`);
             break;
           }
@@ -151,7 +164,7 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', ()
         if (await subtotalElement.isVisible({ timeout: 3000 })) {
           const subtotalText = await subtotalElement.textContent();
           if (subtotalText && subtotalText.includes('₹')) {
-            subtotal = parseFloat(subtotalText.replace(/[^\d.]/g, ''));
+            subtotal = extractINR(subtotalText);
             console.log(`✅ Subtotal: ₹${subtotal}`);
             break;
           }
@@ -178,7 +191,7 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', ()
         if (await totalElement.isVisible({ timeout: 3000 })) {
           finalTotalText = await totalElement.textContent() || '';
           if (finalTotalText.includes('₹')) {
-            finalTotal = parseFloat(finalTotalText.replace(/[^\d.]/g, ''));
+            finalTotal = extractINR(finalTotalText);
             console.log(`✅ Final Total Price: ${finalTotalText} (₹${finalTotal})`);
             break;
           }
@@ -276,8 +289,8 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', ()
     
     // Add first product
     console.log('Adding first product...');
-    const firstProductPrice = await arrivalsLocator.first().locator('.price, .woocommerce-Price-amount').first().textContent();
-    const price1 = parseFloat(firstProductPrice?.replace(/[^\d.]/g, '') || '0');
+    const firstProductPrice = await arrivalsLocator.first().locator('.price .woocommerce-Price-amount, .price .amount').last().textContent();
+    const price1 = extractINR(firstProductPrice);
     productPrices.push(price1);
     console.log(`Product 1 price: ₹${price1}`);
     
@@ -291,8 +304,8 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', ()
     await page.getByRole('link', { name: 'Home' }).click();
     
     console.log('Adding second product...');
-    const secondProductPrice = await arrivalsLocator.nth(1).locator('.price, .woocommerce-Price-amount').first().textContent();
-    const price2 = parseFloat(secondProductPrice?.replace(/[^\d.]/g, '') || '0');
+    const secondProductPrice = await arrivalsLocator.nth(1).locator('.price .woocommerce-Price-amount, .price .amount').last().textContent();
+    const price2 = extractINR(secondProductPrice);
     productPrices.push(price2);
     console.log(`Product 2 price: ₹${price2}`);
     
@@ -318,8 +331,8 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', ()
     // Get subtotal from checkout
     const subtotalElement = page.locator('.cart-subtotal .woocommerce-Price-amount, .cart-subtotal .amount').first();
     if (await subtotalElement.isVisible({ timeout: 5000 })) {
-      const subtotalText = await subtotalElement.textContent();
-      const displayedSubtotal = parseFloat(subtotalText?.replace(/[^\d.]/g, '') || '0');
+  const subtotalText = await subtotalElement.textContent();
+  const displayedSubtotal = extractINR(subtotalText);
       console.log(`Displayed subtotal: ₹${displayedSubtotal}`);
       
       // Verify subtotal calculation
@@ -333,8 +346,8 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Book Final Price', ()
     // Get final total
     const finalTotalElement = page.locator('.order-total .woocommerce-Price-amount, .order-total .amount').first();
     if (await finalTotalElement.isVisible({ timeout: 5000 })) {
-      const finalTotalText = await finalTotalElement.textContent();
-      const finalTotal = parseFloat(finalTotalText?.replace(/[^\d.]/g, '') || '0');
+  const finalTotalText = await finalTotalElement.textContent();
+  const finalTotal = extractINR(finalTotalText);
       console.log(`Final total: ₹${finalTotal}`);
       
       // Final total should be at least the subtotal

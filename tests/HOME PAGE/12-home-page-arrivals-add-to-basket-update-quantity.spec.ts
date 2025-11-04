@@ -516,10 +516,27 @@ test.describe('Home Page Arrivals Add to Basket - Update Book Quantity', () => {
       await quantityInput.click();
       await quantityInput.selectText();
       await quantityInput.fill('2');
-      
-      // Check if button becomes enabled
-      await page.waitForTimeout(500); // Brief wait for state change
-      const activatedEnabled = await updateButton.isEnabled();
+      // Trigger change/blur to let the page enable the button
+      await page.keyboard.press('Tab');
+      // Wait for the button to become enabled (debounced on some themes)
+      let activatedEnabled = false;
+      try {
+        await expect(updateButton).toBeEnabled({ timeout: 4000 });
+        activatedEnabled = true;
+      } catch {
+        // Fallback: re-focus and dispatch a change event to trigger enable
+        await quantityInput.focus();
+        const handle = await quantityInput.elementHandle();
+        if (handle) {
+          await page.evaluate((el) => el.dispatchEvent(new Event('change', { bubbles: true })), handle);
+        }
+        try {
+          await expect(updateButton).toBeEnabled({ timeout: 2000 });
+          activatedEnabled = true;
+        } catch {
+          activatedEnabled = await updateButton.isEnabled();
+        }
+      }
       console.log(`Update Basket button enabled after change: ${activatedEnabled}`);
       
       if (activatedEnabled) {
@@ -530,6 +547,12 @@ test.describe('Home Page Arrivals Add to Basket - Update Book Quantity', () => {
       
       // Test button click and processing
       console.log('Testing button click and processing...');
+      // Ensure it's enabled before clicking to avoid flakiness
+      if (!(await updateButton.isEnabled())) {
+        // As a last resort, wait a bit more
+        await page.waitForTimeout(1000);
+      }
+      await expect(updateButton).toBeEnabled({ timeout: 3000 });
       await updateButton.click();
       
       // Monitor for any loading states or feedback
@@ -541,8 +564,9 @@ test.describe('Home Page Arrivals Add to Basket - Update Book Quantity', () => {
       await quantityInput.click();
       await quantityInput.selectText();
       await quantityInput.fill('3');
-      
-      if (await updateButton.isEnabled({ timeout: 3000 })) {
+      await page.keyboard.press('Tab');
+      await expect(updateButton).toBeEnabled({ timeout: 4000 });
+      if (await updateButton.isEnabled({ timeout: 100 })) {
         await updateButton.click();
         await page.waitForTimeout(2000);
         console.log('✅ First consecutive update completed');
@@ -550,8 +574,9 @@ test.describe('Home Page Arrivals Add to Basket - Update Book Quantity', () => {
         await quantityInput.click();
         await quantityInput.selectText();
         await quantityInput.fill('1');
-        
-        if (await updateButton.isEnabled({ timeout: 3000 })) {
+        await page.keyboard.press('Tab');
+        await expect(updateButton).toBeEnabled({ timeout: 4000 });
+        if (await updateButton.isEnabled({ timeout: 100 })) {
           await updateButton.click();
           await page.waitForTimeout(2000);
           console.log('✅ Second consecutive update completed');
