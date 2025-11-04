@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test';
 import { preparePage } from '../utils/ui';
+import { SITE_URL } from '../utils/site';
 
 test.describe('Home Page Arrivals Add to Basket - Checkout Items', () => {
   
@@ -14,7 +15,7 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Items', () => {
       try {
         console.log(`Navigation attempt ${attempt}/3...`);
         const waitStrategy = attempt === 1 ? 'domcontentloaded' : (attempt === 2 ? 'load' : 'commit');
-        await page.goto('http://practice.automationtesting.in/', { 
+        await page.goto(SITE_URL, { 
           waitUntil: waitStrategy as any,
           timeout: 60000
         });
@@ -73,8 +74,8 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Items', () => {
   test('Multiple items checkout navigation', async ({ page }) => {
     test.setTimeout(45000); // Reduced timeout
     
-    // Navigate to home page
-    await page.goto('http://practice.automationtesting.in/');
+  // Navigate to home page
+  await page.goto(SITE_URL);
     
     // Handle consent dialog
     try {
@@ -104,8 +105,8 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Items', () => {
     await expect(page.locator('.wpmenucart-contents')).toContainText('item', { timeout: 10000 });
     console.log('✅ First product added to basket');
     
-    // Navigate back to home and add second product
-    await page.goto('http://practice.automationtesting.in/');
+  // Navigate back to home and add second product
+  await page.goto(SITE_URL);
     await page.getByRole('link', { name: 'Shop' }).click();
     await page.getByRole('link', { name: 'Home' }).click();
     
@@ -135,8 +136,8 @@ test.describe('Home Page Arrivals Add to Basket - Checkout Items', () => {
   test('Cart menu items link validation', async ({ page }) => {
     test.setTimeout(30000); // Shorter timeout
     
-    // Complete basic add-to-basket flow
-    await page.goto('http://practice.automationtesting.in/');
+  // Complete basic add-to-basket flow
+  await page.goto(SITE_URL);
     
     try {
       await page.getByRole('button', { name: 'Do not consent' }).click({ timeout: 3000 });

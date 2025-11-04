@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test';
 import { preparePage } from '../utils/ui';
+import { SITE_URL } from '../utils/site';
 
 test.describe('Home Page with Three Sliders Only', () => {
   test('Verify that the home page contains exactly three sliders @smoke', async ({ page }) => {
@@ -13,7 +14,7 @@ test.describe('Home Page with Three Sliders Only', () => {
       try {
         console.log(`Navigation attempt ${attempt}/3...`);
         const waitStrategy = attempt === 1 ? 'domcontentloaded' : (attempt === 2 ? 'load' : 'commit');
-        await page.goto('http://practice.automationtesting.in/', { 
+        await page.goto(SITE_URL, { 
           waitUntil: waitStrategy as any,
           timeout: 60000
         });

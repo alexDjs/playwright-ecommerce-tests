@@ -26,6 +26,20 @@ jobs:
     
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
+
+    - name: Start local test-app server (for CI)
+      run: |
+        # Serve the bundled test-app on port 8080 so CI doesn't depend on external site
+        npx http-server test-app -p 8080 --cors &
+        # wait for server to be reachable
+        for i in {1..15}; do
+          if curl -sSf http://localhost:8080 >/dev/null 2>&1; then
+            echo "Local test-app is up"; break
+          fi
+          sleep 1
+        done
+      # keep server running for subsequent steps
+
     
     - name: List Smoke Tests
       run: |
@@ -37,6 +51,8 @@ jobs:
         echo '```' >> $GITHUB_STEP_SUMMARY
 
     - name: 💨 Run Smoke Tests
+      env:
+        TEST_SITE_URL: http://localhost:8080
       run: |
         echo "## 💨 Smoke Tests Execution" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -47,7 +63,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "---" >> $GITHUB_STEP_SUMMARY
         
-        npx playwright test --project=smoke --reporter=list,html
+  npx playwright test --project=smoke --reporter=list,html
     
     - name: Upload test results
       if: ${{ !cancelled() }}

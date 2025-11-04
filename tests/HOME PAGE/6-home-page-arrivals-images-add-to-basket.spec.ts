@@ -3,6 +3,7 @@
 
 import { test, expect } from '@playwright/test';
 import { preparePage } from '../utils/ui';
+import { SITE_URL } from '../utils/site';
 
 test.describe('Home Page Arrivals Image Add to Basket', () => {
   
@@ -14,7 +15,7 @@ test.describe('Home Page Arrivals Image Add to Basket', () => {
       try {
         console.log(`Navigation attempt ${attempt}/3...`);
         const waitStrategy = attempt === 1 ? 'domcontentloaded' : (attempt === 2 ? 'load' : 'commit');
-        await page.goto('http://practice.automationtesting.in/', { 
+        await page.goto(SITE_URL, { 
           waitUntil: waitStrategy as any,
           timeout: 60000
         });
@@ -72,8 +73,8 @@ test.describe('Home Page Arrivals Image Add to Basket', () => {
   test('All arrival products can be added to basket', async ({ page }) => {
     test.setTimeout(60000); // Increase timeout to 60 seconds
     
-    // Navigate to home page
-    await page.goto('http://practice.automationtesting.in/');
+  // Navigate to home page
+  await page.goto(SITE_URL);
     
     // Handle consent dialog if present
     try {
@@ -139,8 +140,8 @@ test.describe('Home Page Arrivals Image Add to Basket', () => {
   });
   
   test('Basket menu item shows added products with prices', async ({ page }) => {
-    // Navigate to home page and first product
-    await page.goto('http://practice.automationtesting.in/');
+  // Navigate to home page and first product
+  await page.goto(SITE_URL);
     
     // Handle consent dialog
     try {
