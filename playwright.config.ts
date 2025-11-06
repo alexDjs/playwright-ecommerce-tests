@@ -17,12 +17,14 @@ export default defineConfig({
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Retry strategy: 1 retry on CI for flaky network/site issues, 0 locally */
+  retries: process.env.CI ? 1 : 0,
+  /* Workers: Use more parallel workers on CI for speed */
+  workers: process.env.CI ? 2 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
+  /* Global timeout for each test */
+  timeout: 90000, // 90 seconds per test (enough for slow e-commerce flows)
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
@@ -65,6 +67,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
       grep: /@smoke/,
       retries: 0, // Smoke tests should pass on first try
+      timeout: 60000, // Shorter timeout for smoke tests
     },
 
     // Important scenarios: Critical business paths (~15-20 tests, 5-7 min)
@@ -72,7 +75,8 @@ export default defineConfig({
       name: 'critical',
       use: { ...devices['Desktop Chrome'] },
       grep: /@critical/,
-      retries: 1,
+      retries: process.env.CI ? 1 : 0, // Allow 1 retry on CI for critical tests
+      timeout: 90000,
     },
 
     // Feature-specific runs (for targeted testing)

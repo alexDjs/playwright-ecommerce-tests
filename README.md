@@ -465,3 +465,9 @@ This project is licensed under the **ISC License**.
    - When to use what approach
    - Performance comparisons
    - Recommendations for your project
+
+- 🔄 **[RETRY_STRATEGY.md](RETRY_STRATEGY.md)** - Retry strategy explained
+   - Why tests retry on CI
+   - How to configure retries
+   - Debugging flaky tests
+   - Best practices

@@ -2,15 +2,15 @@
 // seed: tests/seed.spec.ts
 
 import { test, expect } from '@playwright/test';
+import { navigateToSite } from '../utils/ui';
 
 test.describe('Home Page Arrivals Add to Basket - Place Order', () => {
   
   test('Complete order placement with Direct Bank Transfer @critical', async ({ page }) => {
-    test.setTimeout(90000);
+    test.setTimeout(120000); // Increased for resilient navigation
     
-    // Steps 1-2: Navigate to home page
-    await page.goto('http://practice.automationtesting.in/');
-    console.log('✅ Navigated to practice.automationtesting.in');
+    // Steps 1-2: Navigate to home page with retry logic
+    await navigateToSite(page);
     
     // Handle consent dialog if present
     try {
@@ -72,51 +72,49 @@ test.describe('Home Page Arrivals Add to Basket - Place Order', () => {
     // Steps 17: Fill billing details
     console.log('\n=== Filling Billing Details ===');
     
-    await page.locator('#billing_first_name').fill('John');
-    console.log('✅ First Name: John');
+    await page.locator('#billing_first_name').fill('Oleksandr');
+    console.log('✅ First Name: Oleksandr');
     
-    await page.locator('#billing_last_name').fill('Doe');
-    console.log('✅ Last Name: Doe');
+    await page.locator('#billing_last_name').fill('Shchehlov');
+    console.log('✅ Last Name: Shchehlov');
     
-    await page.locator('#billing_email').fill('john.doe@example.com');
-    console.log('✅ Email: john.doe@example.com');
+    await page.locator('#billing_email').fill('alex.scheglov216@gmail.com');
+    console.log('✅ Email: alex.scheglov216@gmail.com');
     
-    await page.locator('#billing_phone').fill('+919876543210');
-    console.log('✅ Phone: +919876543210');
+    await page.locator('#billing_phone').fill('+48733998203');
+    console.log('✅ Phone: +48733998203');
     
-    await page.locator('#billing_address_1').fill('123 Test Street');
-    console.log('✅ Address: 123 Test Street');
+    await page.locator('#billing_address_1').fill('Krynicka 48');
+    console.log('✅ Address: Krynicka 48');
     
-    await page.locator('#billing_city').fill('Mumbai');
-    console.log('✅ City: Mumbai');
+    await page.locator('#billing_city').fill('Wroclaw');
+    console.log('✅ City: Wroclaw');
     
-    // Handle state selection (select2 dropdown)
+    // Handle country selection (select2 dropdown)
     try {
-      const stateContainer = page.locator('#select2-billing_state-container').first();
-      if (await stateContainer.isVisible({ timeout: 3000 })) {
-        await stateContainer.click();
-        await page.waitForTimeout(2000); // Increased wait for dropdown to appear
+      const countryContainer = page.locator('#select2-billing_country-container').first();
+      if (await countryContainer.isVisible({ timeout: 3000 })) {
+        await countryContainer.click();
+        await page.waitForTimeout(2000);
         
-        // Wait for dropdown and select Maharashtra
-        const maharashtraOption = page.locator('.select2-results li:has-text("Maharashtra")').first();
-        await maharashtraOption.waitFor({ state: 'visible', timeout: 10000 });
-        await maharashtraOption.click();
-        await page.waitForTimeout(1000); // Wait for selection to register
-        console.log('✅ State: Maharashtra');
+        const polandOption = page.locator('.select2-results li:has-text("Poland")').first();
+        await polandOption.waitFor({ state: 'visible', timeout: 10000 });
+        await polandOption.click();
+        await page.waitForTimeout(1000);
+        console.log('✅ Country: Poland');
       }
     } catch (error) {
-      console.log('ℹ️ State field handling: trying alternative method');
-      // Try direct select element if select2 fails
+      console.log('ℹ️ Country field handling: trying alternative method');
       try {
-        await page.locator('#billing_state').selectOption({ label: 'Maharashtra' });
-        console.log('✅ State: Maharashtra (direct select)');
+        await page.locator('#billing_country').selectOption({ label: 'Poland' });
+        console.log('✅ Country: Poland (direct select)');
       } catch (e) {
-        console.log('⚠️ Could not set state');
+        console.log('⚠️ Could not set country');
       }
     }
     
-    await page.locator('#billing_postcode').fill('400001');
-    console.log('✅ Postcode: 400001');
+    await page.locator('#billing_postcode').fill('50-555');
+    console.log('✅ Postcode: 50-555');
     
     console.log('✅ All billing details filled');
     
@@ -256,12 +254,12 @@ test.describe('Home Page Arrivals Add to Basket - Place Order', () => {
         console.log('✅ Billing Address found');
         const addressText = await billingAddress.textContent();
         
-        if (addressText?.includes('John') && addressText?.includes('Doe')) {
-          console.log('✅ Customer name verified: John Doe');
+        if (addressText?.includes('Oleksandr') && addressText?.includes('Shchehlov')) {
+          console.log('✅ Customer name verified: Oleksandr Shchehlov');
         }
         
-        if (addressText?.includes('Mumbai')) {
-          console.log('✅ City verified: Mumbai');
+        if (addressText?.includes('Wroclaw')) {
+          console.log('✅ City verified: Wroclaw');
         }
       } else {
         console.log('⚠️ Billing Address section not found');
@@ -323,30 +321,30 @@ test.describe('Home Page Arrivals Add to Basket - Place Order', () => {
     console.log('=== Filling Billing Details for COD ===');
     
     // Fill billing details
-    await page.locator('#billing_first_name').fill('Jane');
-    await page.locator('#billing_last_name').fill('Smith');
-    await page.locator('#billing_email').fill('jane.smith@test.com');
-    await page.locator('#billing_phone').fill('+919876543211');
-    await page.locator('#billing_address_1').fill('456 Sample Road');
-    await page.locator('#billing_city').fill('Delhi');
+    await page.locator('#billing_first_name').fill('Oleksandr');
+    await page.locator('#billing_last_name').fill('Shchehlov');
+    await page.locator('#billing_email').fill('alex.scheglov216@gmail.com');
+    await page.locator('#billing_phone').fill('+48733998203');
+    await page.locator('#billing_address_1').fill('Krynicka 48');
+    await page.locator('#billing_city').fill('Wroclaw');
     
-    // Handle state selection
+    // Handle country selection
     try {
-      const stateContainer = page.locator('#select2-billing_state-container').first();
-      if (await stateContainer.isVisible({ timeout: 3000 })) {
-        await stateContainer.click();
+      const countryContainer = page.locator('#select2-billing_country-container').first();
+      if (await countryContainer.isVisible({ timeout: 3000 })) {
+        await countryContainer.click();
         await page.waitForTimeout(1000);
-        const delhiOption = page.locator('.select2-results li:has-text("Delhi")').first();
-        await delhiOption.waitFor({ state: 'visible', timeout: 5000 });
-        await delhiOption.click();
+        const polandOption = page.locator('.select2-results li:has-text("Poland")').first();
+        await polandOption.waitFor({ state: 'visible', timeout: 5000 });
+        await polandOption.click();
       }
     } catch (error) {
       try {
-        await page.locator('#billing_state').selectOption({ label: 'Delhi' });
+        await page.locator('#billing_country').selectOption({ label: 'Poland' });
       } catch (e) {}
     }
     
-    await page.locator('#billing_postcode').fill('110001');
+    await page.locator('#billing_postcode').fill('50-555');
     
     console.log('✅ Billing details filled');
     
@@ -428,24 +426,25 @@ test.describe('Home Page Arrivals Add to Basket - Place Order', () => {
     await page.waitForLoadState('domcontentloaded', { timeout: 15000 });
     
     // Quick billing fill
-    await page.locator('#billing_first_name').fill('Test');
-    await page.locator('#billing_last_name').fill('User');
-    await page.locator('#billing_email').fill('test@example.com');
-    await page.locator('#billing_phone').fill('+919999999999');
-    await page.locator('#billing_address_1').fill('Test Address');
-    await page.locator('#billing_city').fill('Test City');
+    await page.locator('#billing_first_name').fill('Oleksandr');
+    await page.locator('#billing_last_name').fill('Shchehlov');
+    await page.locator('#billing_email').fill('alex.scheglov216@gmail.com');
+    await page.locator('#billing_phone').fill('+48733998203');
+    await page.locator('#billing_address_1').fill('Krynicka 48');
+    await page.locator('#billing_city').fill('Wroclaw');
     
-    // Handle state
+    // Handle country
     try {
-      const stateContainer = page.locator('#select2-billing_state-container').first();
-      if (await stateContainer.isVisible({ timeout: 2000 })) {
-        await stateContainer.click();
+      const countryContainer = page.locator('#select2-billing_country-container').first();
+      if (await countryContainer.isVisible({ timeout: 2000 })) {
+        await countryContainer.click();
         await page.waitForTimeout(500);
-        await page.locator('.select2-results li').first().click();
+        const polandOption = page.locator('.select2-results li:has-text("Poland")').first();
+        await polandOption.click();
       }
     } catch (error) {}
     
-    await page.locator('#billing_postcode').fill('123456');
+    await page.locator('#billing_postcode').fill('50-555');
     
     // Select Direct Bank Transfer
     const bankTransferRadio = page.locator('input[type="radio"][value="bacs"], input#payment_method_bacs').first();
@@ -526,39 +525,39 @@ test.describe('Home Page Arrivals Add to Basket - Place Order', () => {
     
     // Fill with specific test data
     const testData = {
-      firstName: 'Robert',
-      lastName: 'Johnson',
-      email: 'robert.j@example.com',
-      phone: '+919988776655',
-      address: '789 Oak Avenue',
-      city: 'Bangalore',
-      postcode: '560001'
+      firstName: 'Oleksandr',
+      lastName: 'Shchehlov',
+      email: 'alex.scheglov216@gmail.com',
+      phone: '+48733998203',
+      address: 'Krynicka 48',
+      city: 'Wroclaw',
+      postcode: '50-555'
     };
     
     console.log('=== Filling Billing with Test Data ===');
     await page.locator('#billing_first_name').fill(testData.firstName);
     await page.locator('#billing_last_name').fill(testData.lastName);
     await page.locator('#billing_email').fill(testData.email);
-    await page.locator('#billing_phone').fill(testData.phone);
     await page.locator('#billing_address_1').fill(testData.address);
     await page.locator('#billing_city').fill(testData.city);
     
-    // Handle state selection
+    // Handle country selection
     try {
-      const stateContainer = page.locator('#select2-billing_state-container').first();
-      if (await stateContainer.isVisible({ timeout: 3000 })) {
-        await stateContainer.click();
+      const countryContainer = page.locator('#select2-billing_country-container').first();
+      if (await countryContainer.isVisible({ timeout: 3000 })) {
+        await countryContainer.click();
         await page.waitForTimeout(1000);
-        const karnatakaOption = page.locator('.select2-results li:has-text("Karnataka")').first();
-        await karnatakaOption.waitFor({ state: 'visible', timeout: 5000 });
-        await karnatakaOption.click();
+        const polandOption = page.locator('.select2-results li:has-text("Poland")').first();
+        await polandOption.waitFor({ state: 'visible', timeout: 5000 });
+        await polandOption.click();
       }
     } catch (error) {
       try {
-        await page.locator('#billing_state').selectOption({ label: 'Karnataka' });
+        await page.locator('#billing_country').selectOption({ label: 'Poland' });
       } catch (e) {}
     }
     
+    await page.locator('#billing_postcode').fill(testData.postcode);
     await page.locator('#billing_postcode').fill(testData.postcode);
     console.log('✅ Test data entered');
     
@@ -658,36 +657,36 @@ test.describe('Home Page Arrivals Add to Basket - Place Order', () => {
     await page.waitForLoadState('domcontentloaded', { timeout: 15000 });
     
     // Quick billing
-    await page.locator('#billing_first_name').fill('Price');
-    await page.locator('#billing_last_name').fill('Test');
-    await page.locator('#billing_email').fill('price@test.com');
-    await page.locator('#billing_phone').fill('+911111111111');
-    await page.locator('#billing_address_1').fill('Price St');
-    await page.locator('#billing_city').fill('Price City');
+    await page.locator('#billing_first_name').fill('Oleksandr');
+    await page.locator('#billing_last_name').fill('Shchehlov');
+    await page.locator('#billing_email').fill('alex.scheglov216@gmail.com');
+    await page.locator('#billing_phone').fill('+48733998203');
+    await page.locator('#billing_address_1').fill('Krynicka 48');
+    await page.locator('#billing_city').fill('Wroclaw');
     
-    // Handle state (robust select2 + fallback to native select)
+    // Handle country (robust select2 + fallback to native select)
     try {
-      const stateContainer = page.locator('#select2-billing_state-container').first();
-      if (await stateContainer.isVisible({ timeout: 3000 })) {
-        await stateContainer.click();
+      const countryContainer = page.locator('#select2-billing_country-container').first();
+      if (await countryContainer.isVisible({ timeout: 3000 })) {
+        await countryContainer.click();
         await page.waitForTimeout(2000);
-        const option = page.locator('.select2-results li:has-text("Maharashtra")').first();
-        await option.waitFor({ state: 'visible', timeout: 10000 });
-        await option.click();
+        const polandOption = page.locator('.select2-results li:has-text("Poland")').first();
+        await polandOption.waitFor({ state: 'visible', timeout: 10000 });
+        await polandOption.click();
         await page.waitForTimeout(1000);
-        console.log('✅ State: Maharashtra');
+        console.log('✅ Country: Poland');
       }
     } catch (error) {
-      console.log('ℹ️ State selection via select2 failed, trying native select');
+      console.log('ℹ️ Country selection via select2 failed, trying native select');
       try {
-        await page.locator('#billing_state').selectOption({ label: 'Maharashtra' });
-        console.log('✅ State: Maharashtra (direct select)');
+        await page.locator('#billing_country').selectOption({ label: 'Poland' });
+        console.log('✅ Country: Poland (direct select)');
       } catch (e) {
-        console.log('⚠️ Could not set state');
+        console.log('⚠️ Could not set country');
       }
     }
     
-    await page.locator('#billing_postcode').fill('111111');
+    await page.locator('#billing_postcode').fill('50-555');
     
     const placeOrderButton = page.locator('#place_order').first();
     await expect(placeOrderButton).toBeVisible({ timeout: 10000 });
